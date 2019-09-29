@@ -1,0 +1,9 @@
+/build/
+*.o
+*.lst
+*~
+/fasm*/
+/pedump/
+/utils/
+/tags
+
