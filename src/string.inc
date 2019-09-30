@@ -13,7 +13,7 @@ length:
         mov ecx, -1
         repne scasb
         mov eax, ecx
-        neg eax
-        sub eax, 2
+        not eax
+        dec eax
         pop edi
         ret
