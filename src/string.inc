@@ -10,7 +10,8 @@ length:
         push edi
         mov edi, [esp+8]
         xor eax, eax
-        mov ecx, -1
+        xor ecx, ecx
+        dec ecx
         repne scasb
         mov eax, ecx
         not eax
