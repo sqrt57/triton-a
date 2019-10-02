@@ -8,3 +8,6 @@
 
     done_str db 'Done.', 0x0a
     done_len = $-done_str
+
+    quote_str db '"'
+    quote_len = $-quote_str

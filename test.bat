@@ -1,2 +1,2 @@
 call build.bat
-build\trac.exe
+build\trac.exe x "y 15" z

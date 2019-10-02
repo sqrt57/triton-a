@@ -12,7 +12,6 @@ include 'messages.inc'
 section '.data' data readable writable
         stdin dd ?
         bytes_written dd ?
-        exit_code dd ?
 
 section '.text' code executable readable
 
@@ -26,9 +25,9 @@ start:
         mov [stdin], eax
 
         call [GetCommandLineA]
+        push eax
 
         ; Calculate length of command line
-        push eax
         push eax
         call length
         add esp, 4
@@ -39,9 +38,8 @@ start:
         push ecx
         call drive
         add esp, 8
-        mov [exit_code], eax
 
-        push [exit_code]
+        push eax
         call [ExitProcess]
 
 ; Prints string to stdandard output
