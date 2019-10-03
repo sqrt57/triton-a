@@ -10,6 +10,7 @@ section '.rdata' data readable
 include 'messages.inc'
 
 section '.data' data readable writable
+include 'variables.inc'
         stdin dd ?
         bytes_written dd ?
 
