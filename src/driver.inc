@@ -44,17 +44,11 @@ drive:
         ; Check for options
         cmp byte [eax], '-'
         je .read_option
-        ; Push result
+        ; Process input file
         push ecx
         push eax
-        ; Print "Reading filename\n"
-        push reading_len
-        push reading_str
-        call print
+        call process_input_file
         add esp, 8
-        call print
-        add esp, 8
-        call newline
         ; Count input file
         inc dword .in_files_num
         ; Loop again
@@ -106,16 +100,11 @@ drive:
         je .output_filename_missing
         cmp dword .in_files_num, 0
         je .no_input_file
-        ; Print "Writing filename\n"
-        push writing_len
-        push writing_str
-        call print
-        add esp, 8
+        ; Process output file
         push dword .out_filename_len
         push dword .out_filename
-        call print
+        call process_output_file
         add esp, 8
-        call newline
 
         ; Print "Done"
         push done_len
@@ -206,4 +195,54 @@ drive_get_arg:
     .ret_null:
         xor eax, eax
         xor ecx, ecx
+        ret
+
+; Read and compile input file
+; In: 1) File name
+;     2) File name length
+process_input_file:
+        .filename_str equ [ebp+8]
+        .filename_len equ [ebp+12]
+
+        push ebp
+        mov ebp, esp
+
+        ; Print "Reading filename\n"
+        push reading_len
+        push reading_str
+        call print
+        add esp, 8
+        push dword .filename_len
+        push dword .filename_str
+        call print
+        add esp, 8
+        call newline
+
+        mov esp, ebp
+        pop ebp
+        ret
+
+; Write result to output file
+; In: 1) File name
+;     2) File name length
+process_output_file:
+        .filename_str equ [ebp+8]
+        .filename_len equ [ebp+12]
+
+        push ebp
+        mov ebp, esp
+
+        ; Print "Writing filename\n"
+        push writing_len
+        push writing_str
+        call print
+        add esp, 8
+        push dword .filename_len
+        push dword .filename_str
+        call print
+        add esp, 8
+        call newline
+
+        mov esp, ebp
+        pop ebp
         ret
