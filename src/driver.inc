@@ -11,7 +11,9 @@ drive:
         .cmdline equ [ebp+8]
         .cmdline_len equ [ebp+12]
         .cur equ esi
+        drive_cur equ esi
         .end equ [ebp-4]
+        drive_end equ [ebp-4]
         .in_files_num equ [ebp-8]
         .out_filename equ [ebp-12]
         .out_filename_len equ [ebp-16]
@@ -31,9 +33,7 @@ drive:
         mov .end, eax
 
         ; Skip program name
-        call drive_get_arg
-        cmp eax, 0
-        je .done
+        call drive_skip_arg0
 
     .arg_loop:
         ; Get arg
@@ -44,11 +44,14 @@ drive:
         ; Check for options
         cmp byte [eax], '-'
         je .read_option
+        push eax
         ; Process input file
         push ecx
         push eax
         call process_input_file
         add esp, 8
+        call free
+        add esp, 4
         ; Count input file
         inc dword .in_files_num
         ; Loop again
@@ -59,6 +62,9 @@ drive:
         jne .unknow_option
         cmp byte [eax+1], 'o'
         jne .unknow_option
+        push eax
+        call free
+        add esp, 4
         ; Get next arg
         call drive_get_arg
         cmp eax, 0
@@ -144,16 +150,15 @@ drive:
         ret
 
 ; Inner function of drive
-; Gets next argument from command line
-; Uses .cur, .end
-; Out: EAX - address of argument
-;      ECX - length of argument
-drive_get_arg:
+; Skips first argument (executable name)
+; Uses drive_cur, drive_cur
+drive_skip_arg0:
         xor eax, eax
+        xor ecx, ecx
     .skip_whitespace:
-        cmp .cur, .end
-        jae .ret_null
-        mov edx, .cur
+        cmp drive_cur, drive_end
+        jae .done
+        mov edx, drive_cur
         lodsb
         cmp eax, ' '
         je .skip_whitespace
@@ -161,44 +166,150 @@ drive_get_arg:
         je .skip_whitespace
         cmp eax, '"'
         jne .unquoted_loop
-        mov edx, .cur
-        cmp .cur, .end
-        jae .found_end
+        mov edx, drive_cur
+        cmp drive_cur, drive_end
+        jae .done
         lodsb
     .quoted_loop:
-        cmp .cur, .end
-        jae .found_end
+        cmp drive_cur, drive_end
+        jae .done
         cmp eax, '"'
         je .done
+        inc ecx
         lodsb
         jmp .quoted_loop
     .unquoted_loop:
-        cmp .cur, .end
+        cmp drive_cur, drive_end
+        jae .done
+        cmp eax, ' '
+        je .done
+        cmp eax, 9 ; TAB
+        je .done
+        inc ecx
+        lodsb
+        jmp .unquoted_loop
+    .done:
+        ret
+
+; Inner function of drive
+; Gets next argument from command line
+; Uses drive_cur, drive_end
+; Out: EAX - address of argument
+;      ECX - length of argument
+drive_get_arg:
+        xor eax, eax
+        xor ecx, ecx
+        push drive_cur
+        ; Calculate string length
+    .len_skip_whitespace:
+        cmp drive_cur, drive_end
+        jae .len_ret_null
+        lodsb
+        cmp eax, ' '
+        je .len_skip_whitespace
+        cmp eax, 9 ; TAB
+        je .len_skip_whitespace
+        cmp eax, '"'
+        jne .len_unquoted_loop
+        cmp drive_cur, drive_end
+        jae .len_ret_null
+        lodsb
+    .len_quoted_loop:
+        cmp drive_cur, drive_end
+        jae .len_found_end
+        cmp eax, '"'
+        je .len_done
+        inc ecx
+        lodsb
+        jmp .len_quoted_loop
+    .len_unquoted_loop:
+        cmp drive_cur, drive_end
+        jae .len_found_end
+        cmp eax, ' '
+        je .len_done
+        cmp eax, 9 ; TAB
+        je .len_done
+        inc ecx
+        lodsb
+        jmp .len_unquoted_loop
+    .len_found_end:
+        inc ecx
+    .len_done:
+        pop drive_cur
+        push ecx
+        inc ecx
+        push ecx
+        call malloc
+        add esp, 4
+        push edi
+        mov edi, eax
+        push edi
+        jmp .copy_arg
+    .len_ret_null:
+        add esp, 4
+        xor eax, eax
+        xor ecx, ecx
+        ret
+    .copy_arg:
+        xor eax, eax
+    .skip_whitespace:
+        cmp drive_cur, drive_end
+        jae .ret_null
+        mov edx, drive_cur
+        lodsb
+        cmp eax, ' '
+        je .skip_whitespace
+        cmp eax, 9 ; TAB
+        je .skip_whitespace
+        cmp eax, '"'
+        jne .unquoted_loop
+        mov edx, drive_cur
+        cmp drive_cur, drive_end
+        jae .found_end
+        lodsb
+    .quoted_loop:
+        cmp drive_cur, drive_end
+        jae .found_end
+        cmp eax, '"'
+        je .done
+        stosb
+        lodsb
+        jmp .quoted_loop
+    .unquoted_loop:
+        cmp drive_cur, drive_end
         jae .found_end
         cmp eax, ' '
         je .done
         cmp eax, 9 ; TAB
         je .done
+        stosb
         lodsb
         jmp .unquoted_loop
     .found_end:
-        mov eax, edx
-        mov ecx, .cur
-        sub ecx, eax
+        stosb
+        xor eax, eax
+        stosb
+        pop eax
+        pop edi
+        pop ecx
         ret
     .done:
-        mov eax, edx
-        mov ecx, .cur
-        sub ecx, eax
-        dec ecx
+        xor eax, eax
+        stosb
+        pop eax
+        pop edi
+        pop ecx
         ret
     .ret_null:
+        pop eax
+        pop edi
+        pop ecx
         xor eax, eax
         xor ecx, ecx
         ret
 
 ; Read and compile input file
-; In: 1) File name
+; In: 1) File name (null-terminated)
 ;     2) File name length
 process_input_file:
         .filename_str equ [ebp+8]

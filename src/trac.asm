@@ -13,6 +13,7 @@ section '.data' data readable writable
 include 'variables.inc'
         stdin dd ?
         bytes_written dd ?
+        win32_heap dd ?
 
 section '.text' code executable readable
 
@@ -21,16 +22,21 @@ start:
         nop
         cld ; Clear direction flag according to calling conventions
 
+        ; Initialize stdin
         push -11
         call [GetStdHandle]
         mov [stdin], eax
+
+        ; Initialize heap
+        call [GetProcessHeap]
+        mov [win32_heap], eax
 
         call [GetCommandLineA]
         push eax
 
         ; Calculate length of command line
         push eax
-        call length
+        call str_length
         add esp, 4
 
         ; Call driver
@@ -43,34 +49,10 @@ start:
         push eax
         call [ExitProcess]
 
-; Prints string to stdandard output
-; In: 1) Address of string
-;     2) Length of string
-print:
-        push ebp
-        mov ebp, esp
-        push 0
-        push bytes_written
-        push dword [ebp+12]
-        push dword [ebp+8]
-        push [stdin]
-        call [WriteFile]
-        mov esp, ebp
-        pop ebp
-        ret
-
-; Prints newline to stdandard output
-newline:
-        push 0
-        push bytes_written
-        push dword newline_len
-        push dword newline_str
-        push [stdin]
-        call [WriteFile]
-        ret
 
 include 'driver.inc'
-include 'string.inc'
+include 'memory.inc'
+include 'io.inc'
 
 section '.idata' import data readable writable
 
@@ -81,13 +63,27 @@ section '.idata' import data readable writable
 
         align 4
     kernel32.iat:
-        ExitProcess     dd rva ExitProcess.hint
-        GetCommandLineA dd rva GetCommandLineA.hint
-        GetStdHandle    dd rva GetStdHandle.hint
-        WriteFile       dd rva WriteFile.hint
+        ExitProcess     dd rva ExitProcess_name
+        GetCommandLineA dd rva GetCommandLineA_name
+        GetStdHandle    dd rva GetStdHandle_name
+        CloseHandle     dd rva CloseHandle_name
+        CreateFileA     dd rva CreateFileA_name
+        ReadFile        dd rva ReadFile_name
+        WriteFile       dd rva WriteFile_name
+        GetFileSizeEx   dd rva GetFileSizeEx_name
+        GetProcessHeap  dd rva GetProcessHeap_name
+        HeapAlloc       dd rva HeapAlloc_name
+        HeapFree        dd rva HeapFree_name
         dd 0
 
-        ExitProcess.hint        db 0, 0, 'ExitProcess', 0
-        GetCommandLineA.hint    db 0, 0, 'GetCommandLineA', 0
-        GetStdHandle.hint       db 0, 0, 'GetStdHandle', 0
-        WriteFile.hint          db 0, 0, 'WriteFile', 0
+        ExitProcess_name        db 0, 0, 'ExitProcess', 0
+        GetCommandLineA_name    db 0, 0, 'GetCommandLineA', 0
+        GetStdHandle_name       db 0, 0, 'GetStdHandle', 0
+        CloseHandle_name        db 0, 0, 'CloseHandle', 0
+        CreateFileA_name        db 0, 0, 'CreateFileA', 0
+        ReadFile_name           db 0, 0, 'ReadFile', 0
+        WriteFile_name          db 0, 0, 'WriteFile', 0
+        GetFileSizeEx_name      db 0, 0, 'GetFileSizeEx', 0
+        GetProcessHeap_name     db 0, 0, 'GetProcessHeap', 0
+        HeapAlloc_name          db 0, 0, 'HeapAlloc', 0
+        HeapFree_name           db 0, 0, 'HeapFree', 0

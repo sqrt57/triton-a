@@ -32,3 +32,6 @@ no_input_file_len = $-no_input_file_str
 
 usage_str db 'Usage:', 0x0a, '  trac -o program.exe file1.tra [file2.tra ...]', 0x0a
 usage_len = $-usage_str
+
+error_reading_file_str db 'Error reading file '
+error_reading_file_len = $-error_reading_file_str
