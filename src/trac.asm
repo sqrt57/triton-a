@@ -12,7 +12,6 @@ include 'messages.inc'
 section '.data' data readable writable
 include 'variables.inc'
         stdin dd ?
-        bytes_written dd ?
         win32_heap dd ?
 
 section '.text' code executable readable

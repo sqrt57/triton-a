@@ -13,10 +13,13 @@ sys_exit:
 ; In: 1) Address of string
 ;     2) Length of string
 print:
+        .bytes_written equ [ebp-4]
         push ebp
         mov ebp, esp
+        sub esp, 4
         push dword 0
-        push bytes_written
+        lea eax, .bytes_written
+        push eax
         push dword [ebp+12]
         push dword [ebp+8]
         push [stdin]
@@ -27,12 +30,15 @@ print:
 
 ; Prints newline to stdandard output
 newline:
+        sub esp, 4
+        mov eax, esp
         push dword 0
-        push bytes_written
+        push eax
         push dword newline_len
         push dword newline_str
         push [stdin]
         call [WriteFile]
+        add esp, 4
         ret
 
 ; Reads a file into memory
