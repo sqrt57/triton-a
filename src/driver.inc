@@ -312,22 +312,42 @@ drive_get_arg:
 ; In: 1) File name (null-terminated)
 ;     2) File name length
 process_input_file:
-        .filename_str equ [ebp+8]
-        .filename_len equ [ebp+12]
+        .filename_str equ dword [ebp+8]
+        .filename_len equ dword [ebp+12]
+        .file equ dword [ebp-4]
+        .file_len equ dword [ebp-8]
 
         push ebp
         mov ebp, esp
+        sub esp, 8
 
         ; Print "Reading filename\n"
         push reading_len
         push reading_str
         call print
         add esp, 8
-        push dword .filename_len
-        push dword .filename_str
+        push .filename_len
+        push .filename_str
         call print
         add esp, 8
         call newline
+
+        push .filename_len
+        push .filename_str
+        call read_file
+        add esp, 8
+        mov .file, eax
+        mov .file_len, edx
+
+        push .file_len
+        push .file
+        call print
+        add esp, 8
+        call newline
+
+        push .file
+        call free
+        add esp, 4
 
         mov esp, ebp
         pop ebp

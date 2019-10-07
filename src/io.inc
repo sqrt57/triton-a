@@ -68,14 +68,14 @@ read_file:
         mov ebp, esp
         sub esp, 24
 
-        push dword 0
-        push dword 0x80
-        push dword 3
-        push dword 0
-        push dword 1
-        push dword 0x80000000
-        push dword .file_path_str
-        call CreateFileA
+        push dword 0               ; hTemplateFile
+        push dword 0x80            ; dwFlagsAndAttributes = FILE_ATTRIBUTE_NORMAL
+        push dword 3               ; dwCreationDisposition = OPEN_EXISTING
+        push dword 0               ; lpSecurityAttributes
+        push dword 1               ; dwShareMode = FILE_SHARE_READ
+        push dword 0x80000000      ; dwDesiredAccess = GENERIC_READ
+        push dword .file_path_str  ; Null-terminated file path
+        call [CreateFileA]
         mov .handle, eax
         cmp eax, -1
         je .error
@@ -83,7 +83,7 @@ read_file:
         lea edx, .size_low
         push edx
         push eax
-        call GetFileSizeEx
+        call [GetFileSizeEx]
         test eax, eax
         jz .error
 
@@ -123,9 +123,11 @@ read_file:
         push error_reading_file_len
         push error_reading_file_str
         call print
+        add esp, 8
         push dword .file_path_len
         push dword .file_path_str
         call print
+        add esp, 8
         call newline
         push dword 1
         call sys_exit
