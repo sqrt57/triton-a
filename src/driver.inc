@@ -332,6 +332,7 @@ process_input_file:
         add esp, 8
         call newline
 
+        ; Read file
         push .filename_len
         push .filename_str
         call read_file
@@ -339,12 +340,14 @@ process_input_file:
         mov .file, eax
         mov .file_len, edx
 
+        ; Print contents
         push .file_len
         push .file
         call print
         add esp, 8
         call newline
 
+        ; Free memory block holding file contents
         push .file
         call free
         add esp, 4
@@ -357,8 +360,8 @@ process_input_file:
 ; In: 1) File name
 ;     2) File name length
 process_output_file:
-        .filename_str equ [ebp+8]
-        .filename_len equ [ebp+12]
+        .filename_str equ dword [ebp+8]
+        .filename_len equ dword [ebp+12]
 
         push ebp
         mov ebp, esp
@@ -368,11 +371,19 @@ process_output_file:
         push writing_str
         call print
         add esp, 8
-        push dword .filename_len
-        push dword .filename_str
+        push .filename_len
+        push .filename_str
         call print
         add esp, 8
         call newline
+
+        ; Write file
+        push dummy_file_len
+        push dummy_file_str
+        push .filename_len
+        push .filename_str
+        call write_file
+        add esp, 8
 
         mov esp, ebp
         pop ebp

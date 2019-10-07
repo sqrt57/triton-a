@@ -35,3 +35,9 @@ usage_len = $-usage_str
 
 error_reading_file_str db 'Error reading file '
 error_reading_file_len = $-error_reading_file_str
+
+error_writing_file_str db 'Error writing file '
+error_writing_file_len = $-error_writing_file_str
+
+dummy_file_str db 'Dummy output file'
+dummy_file_len = $-dummy_file_str

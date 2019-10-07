@@ -56,13 +56,6 @@ read_file:
         .size_low equ [ebp-16]
         .bytes_written equ [ebp-20]
         .result equ [ebp-24]
-        ; Locals:
-        ; [EBP-4] File handle
-        ; [EBP-8] Allocated memory address
-        ; [EBP-12] High doubleword of file size
-        ; [EBP-16] Low doubleword of file size
-        ; [EBP-20] Number of bytes read
-        ; [EBP-24] Result of ReadFile
 
         push ebp
         mov ebp, esp
@@ -126,6 +119,69 @@ read_file:
         add esp, 8
         push dword .file_path_len
         push dword .file_path_str
+        call print
+        add esp, 8
+        call newline
+        push dword 1
+        call sys_exit
+
+; Writes a file
+; In: 1) File path address (null-terminated)
+;     2) File path length
+;     3) Memory address of file data
+;     4) Length of file data
+write_file:
+        .file_path_str equ dword [ebp+8]
+        .file_path_len equ dword [ebp+12]
+        .file_data equ dword [ebp+16]
+        .file_data_len equ dword [ebp+20]
+
+        .handle equ dword [ebp-4]
+        .bytes_written equ dword [ebp-8]
+        .result equ dword [ebp-12]
+
+        push ebp
+        mov ebp, esp
+        sub esp, 12
+
+
+        push 0                  ; hTemplateFile
+        push 0x80               ; dwFlagsAndAttributes = FILE_ATTRIBUTE_NORMAL
+        push 2                  ; dwCreationDisposition = CREATE_ALWAYS
+        push 0                  ; lpSecurityAttributes
+        push 0x00000001         ; dwShareMode = FILE_SHARE_READ
+        push 0xC0000000         ; dwDesiredAccess = GENERIC_READ|GENERIC_WRITE
+        push .file_path_str     ; File name as null-terminated string
+        call [CreateFileA]      ; Open the file
+        mov .handle, eax
+
+        lea edx, .bytes_written
+        push 0                  ; lpOverlapped, not used
+        push edx                ; Address of variable for storing number of
+                                ; bytes actually written
+        push .file_data_len     ; Number of bytes to write
+        push .file_data         ; Address of string
+        push .handle            ; File handle handle
+        call [WriteFile]        ; Call WriteFile from kernel32.dll
+        mov .result, eax
+
+        push .handle
+        call [CloseHandle]
+
+        cmp .result, 0
+        je .error
+
+        mov esp, ebp
+        pop ebp
+        ret
+
+    .error:
+        push error_writing_file_len
+        push error_writing_file_str
+        call print
+        add esp, 8
+        push .file_path_len
+        push .file_path_str
         call print
         add esp, 8
         call newline
