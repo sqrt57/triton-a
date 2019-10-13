@@ -41,3 +41,15 @@ error_writing_file_len = $-error_writing_file_str
 
 dummy_file_str db 'Dummy output file'
 dummy_file_len = $-dummy_file_str
+
+bad_char_str db 'Error: unexpected char in input: "'
+bad_char_len = $-bad_char_str
+
+lexer_starting_str db 'Lexer starting', 0x0a
+lexer_starting_len = $-lexer_starting_str
+
+lexer_done_str db 'Lexer done', 0x0a
+lexer_done_len = $-lexer_done_str
+
+identifier_str db 'Identifier "'
+identifier_len = $-identifier_str

@@ -30,15 +30,18 @@ print:
 
 ; Prints newline to stdandard output
 newline:
-        sub esp, 4
-        mov eax, esp
-        push dword 0
-        push eax
         push dword newline_len
         push dword newline_str
-        push [stdin]
-        call [WriteFile]
-        add esp, 4
+        call print
+        add esp, 8
+        ret
+
+; Prints quote to stdandard output
+print_quote:
+        push dword quote_len
+        push dword quote_str
+        call print
+        add esp, 8
         ret
 
 ; Reads a file into memory

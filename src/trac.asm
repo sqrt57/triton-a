@@ -48,10 +48,11 @@ start:
         push eax
         call [ExitProcess]
 
-
 include 'driver.inc'
 include 'memory.inc'
 include 'io.inc'
+include 'lexer.inc'
+include 'parser_stub.inc'
 
 section '.idata' import data readable writable
 

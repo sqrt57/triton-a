@@ -340,12 +340,11 @@ process_input_file:
         mov .file, eax
         mov .file_len, edx
 
-        ; Print contents
+        ; Lex, parse and compile the file
         push .file_len
         push .file
-        call print
+        call lex
         add esp, 8
-        call newline
 
         ; Free memory block holding file contents
         push .file
