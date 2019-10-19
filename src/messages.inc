@@ -53,3 +53,9 @@ lexer_done_len = $-lexer_done_str
 
 identifier_str db 'Identifier "'
 identifier_len = $-identifier_str
+
+special_str db 'Special "'
+special_len = $-special_str
+
+operator_too_long_str db 'Error: operator should be no longer than 4 character: "'
+operator_too_long_len = $-operator_too_long_str

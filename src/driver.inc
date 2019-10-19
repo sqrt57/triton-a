@@ -23,6 +23,9 @@ drive:
         sub esp, 16
         push esi
 
+        ; Initialize subsystems
+        call lexer_init
+
         ; Initialize locals
         mov dword .in_files_num, 0
         mov dword .out_filename, 0

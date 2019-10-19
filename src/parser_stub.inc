@@ -41,3 +41,31 @@ lexeme_identifier:
         mov esp, ebp
         pop ebp
         ret
+
+; Processes identifier lexeme
+; In: 1) Special name length, maximum 4
+;     2) Special name value on stack, maximum 4 bytes
+lexeme_special:
+        .name_val equ dword [ebp+8]
+        .name_len equ dword [ebp+12]
+
+        push ebp
+        mov ebp, esp
+
+        push special_len
+        push special_str
+        call print
+        add esp, 4
+
+        lea edx, .name_val
+        push .name_len
+        push edx
+        call print
+        add esp, 4
+
+        call print_quote
+        call newline
+
+        mov esp, ebp
+        pop ebp
+        ret

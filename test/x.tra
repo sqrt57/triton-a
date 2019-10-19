@@ -1,2 +1,7 @@
-  Hello
-    sdfsd fds
+module X1 {
+    const a: int := y<<z;
+    !<=
+    !<=/
+}
+module X2 {{
+}}

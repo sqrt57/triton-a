@@ -3,6 +3,35 @@
 ; This file is part of Triton-A project.
 ; Copyright 2019, Dmitry Grigoryev
 
+lexer_init:
+        xor ecx, ecx
+        inc ecx
+
+        mov eax, is_single_char_table
+        mov [eax + '{'], cl
+        mov [eax + '}'], cl
+        mov [eax + '('], cl
+        mov [eax + ')'], cl
+        mov [eax + '['], cl
+        mov [eax + ']'], cl
+        mov [eax + ';'], cl
+        mov [eax + ','], cl
+        mov [eax + '.'], cl
+        mov [eax + '^'], cl
+        mov [eax + '@'], cl
+
+        mov eax, is_operator_char_table
+        mov [eax + '+'], cl
+        mov [eax + '-'], cl
+        mov [eax + '*'], cl
+        mov [eax + '/'], cl
+        mov [eax + '<'], cl
+        mov [eax + '>'], cl
+        mov [eax + '='], cl
+        mov [eax + '!'], cl
+        mov [eax + ':'], cl
+        ret
+
 ; Split source stream into lexemes and call token evaluator
 ; In: 1) Address of memory block with source
 ;     2) Length of memory bock
@@ -12,10 +41,11 @@ lex:
 
         .end_addr equ dword [ebp-4]
         .char equ dword [ebp-8]
+        . equ dword [ebp-12]
 
         push ebp
         mov ebp, esp
-        sub esp, 8
+        sub esp, 12
         push esi
 
         call lexeme_start_file
@@ -37,6 +67,12 @@ lex:
         call is_identifier_start
         jz .read_identifier
 
+        call is_single_char
+        jz .read_single_char
+
+        call is_operator_char
+        jz .read_operator
+
         jmp .bad_char
 
     .read_identifier:
@@ -56,6 +92,80 @@ lex:
         push edx
         push eax
         call lexeme_identifier
+        add esp, 8
+        jmp .next
+
+    .read_single_char:
+        push 1
+        push eax
+        call lexeme_special
+        add esp, 8
+        jmp .next
+
+    .read_operator:
+        push dword 1
+        mov ecx, eax
+
+        cmp esi, .end_addr
+        jae .operator_done_eof
+        lodsb
+        call is_operator_char
+        jnz .operator_done
+
+        shl eax, 8
+        or ecx, eax
+        mov [esp], dword 2
+
+        cmp esi, .end_addr
+        jae .operator_done_eof
+        xor eax, eax
+        lodsb
+        call is_operator_char
+        jnz .operator_done
+
+        shl eax, 16
+        or ecx, eax
+        mov [esp], dword 3
+
+        cmp esi, .end_addr
+        jae .operator_done_eof
+        xor eax, eax
+        lodsb
+        call is_operator_char
+        jnz .operator_done
+
+        shl eax, 24
+        or ecx, eax
+        mov [esp], dword 4
+
+        cmp esi, .end_addr
+        jae .operator_done_eof
+        xor eax, eax
+        lodsb
+        call is_operator_char
+        jnz .operator_done
+
+        add esp, 4
+        push operator_too_long_len
+        push operator_too_long_str
+        call print
+        add esp, 8
+        push dword 5
+        lea edx, [esi-5]
+        push edx
+        call print
+        add esp, 8
+        call print_quote
+        call newline
+
+        push dword 1
+        call sys_exit
+
+    .operator_done:
+        dec esi
+    .operator_done_eof:
+        push ecx
+        call lexeme_special
         add esp, 8
         jmp .next
 
@@ -84,7 +194,7 @@ lex:
         call print_quote
         call newline
 
-        mov eax, 1
+        push dword 1
         call sys_exit
 
 ; Checks whether byte is whitespace character
@@ -109,9 +219,9 @@ is_whitespace:
         ret
 
 ; Checks whether byte is start of identifier
-; In: AL - input byte
+; In: EAX - input byte, 3 high bytes should be zero
 ; Out: ZF=1 iff input is start of identifier
-;      AL - preserves input
+;      EAX - preserves input
 is_identifier_start:
         ; Identifiear can start with a-z A-Z _
         cmp eax, '_'
@@ -138,9 +248,9 @@ is_identifier_start:
         ret
 
 ; Checks whether byte is part of identifier
-; In: AL - input byte
+; In: EAX - input byte, 3 high bytes should be zero
 ; Out: ZF=1 iff input is part of identifier
-;      AL - preserves input
+;      EAX - preserves input
 is_identifier_char:
         ; Identifier consists of a-z A-Z 0-9 _
         cmp eax, '_'
@@ -174,3 +284,22 @@ is_identifier_char:
         cmp eax, eax
         ret
 
+; Checks whether char is part of operator
+; In: EAX - input byte, 3 high bytes should be zero
+; Out: ZF=1 iff input is part of operator
+;      EAX - preserves input
+; Notes: trashes EDX value
+is_operator_char:
+        movzx edx, byte [is_operator_char_table+eax]
+        cmp edx, 1
+        ret
+
+; Checks whether char consitutes a separate lexeme
+; In: EAX - input byte, 3 high bytes should be zero
+; Out: ZF=1 iff input consitutes a separate lexeme
+;      EAX - preserves input
+; Notes: trashes EDX value
+is_single_char:
+        movzx edx, byte [is_single_char_table+eax]
+        cmp edx, 1
+        ret
