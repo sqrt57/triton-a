@@ -1,7 +1,5 @@
-module X1 {
-    const a: int := y<<z;
-    !<=
-    !<=/
-}
-module X2 {{
-}}
+'x'
+'\t'
+'\n'
+'\''
+'"'

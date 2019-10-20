@@ -12,6 +12,9 @@ done_len = $-done_str
 quote_str db '"'
 quote_len = $-quote_str
 
+apostrophe_str db "'"
+apostrophe_len = $-apostrophe_str
+
 reading_str db 'Reading '
 reading_len = $-reading_str
 
@@ -57,5 +60,17 @@ identifier_len = $-identifier_str
 special_str db 'Special "'
 special_len = $-special_str
 
+char_lexeme_str db 'Character literal: '''
+char_lexeme_len = $-char_lexeme_str
+
 operator_too_long_str db 'Error: operator should be no longer than 4 character: "'
 operator_too_long_len = $-operator_too_long_str
+
+expected_char_literal_str db 'Error: expected character literal but got: "'
+expected_char_literal_len = $-expected_char_literal_str
+
+char_literal_close_quote_expected_str db 'Error: closing apostrophe expected in char literal: "'
+char_literal_close_quote_expected_len = $-char_literal_close_quote_expected_str
+
+unknown_escape_code_str db 'Error: unknown escape code: "'
+unknown_escape_code_len = $-unknown_escape_code_str

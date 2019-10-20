@@ -61,9 +61,35 @@ lexeme_special:
         push .name_len
         push edx
         call print
-        add esp, 4
+        add esp, 8
 
         call print_quote
+        call newline
+
+        mov esp, ebp
+        pop ebp
+        ret
+
+; Processes char literal lexeme
+; In: 1) Character, high 3 bytes are zero
+lexeme_char_literal:
+        .char equ dword [ebp+8]
+
+        push ebp
+        mov ebp, esp
+
+        push char_lexeme_len
+        push char_lexeme_str
+        call print
+        add esp, 4
+
+        lea edx, .char
+        push dword 1
+        push edx
+        call print
+        add esp, 8
+
+        call print_apostrophe
         call newline
 
         mov esp, ebp

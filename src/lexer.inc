@@ -40,12 +40,11 @@ lex:
         .source_len equ dword [ebp+12]
 
         .end_addr equ dword [ebp-4]
-        .char equ dword [ebp-8]
-        . equ dword [ebp-12]
+        .lexeme_start equ dword [ebp-8]
 
         push ebp
         mov ebp, esp
-        sub esp, 12
+        sub esp, 8
         push esi
 
         call lexeme_start_file
@@ -58,6 +57,7 @@ lex:
     .next:
         xor eax, eax
     .skip_whitespace:
+        mov .lexeme_start, esi
         cmp esi, .end_addr
         jae .ret
         lodsb
@@ -66,6 +66,9 @@ lex:
 
         call is_identifier_start
         jz .read_identifier
+
+        cmp eax, "'"
+        jz .read_char_literal
 
         call is_single_char
         jz .read_single_char
@@ -150,11 +153,7 @@ lex:
         push operator_too_long_str
         call print
         add esp, 8
-        push dword 5
-        lea edx, [esi-5]
-        push edx
-        call print
-        add esp, 8
+        call .print_lexeme
         call print_quote
         call newline
 
@@ -169,6 +168,77 @@ lex:
         add esp, 8
         jmp .next
 
+    .read_char_literal:
+        cmp esi, .end_addr
+        jae .expected_char_literal
+        lodsb
+        cmp eax, '\'
+        jz .char_literal_special
+        cmp eax, "'"
+        jz .expected_char_literal
+        jmp .end_char_literal
+    .char_literal_special:
+        cmp esi, .end_addr
+        jae .expected_char_literal
+        lodsb
+        cmp eax, 't'
+        jnz .char_literal_special1
+        mov eax, 0x09
+        jmp .end_char_literal
+    .char_literal_special1:
+        cmp eax, 'n'
+        jnz .char_literal_special2
+        mov eax, 0x0a
+        jmp .end_char_literal
+    .char_literal_special2:
+        cmp eax, "'"
+        jnz .char_literal_special3
+        mov eax, "'"
+        jmp .end_char_literal
+    .char_literal_special3:
+        inc .lexeme_start
+        push unknown_escape_code_len
+        push unknown_escape_code_str
+        call print
+        add esp, 8
+        call .print_lexeme
+        call print_quote
+        call newline
+        push dword 1
+        call sys_exit
+    .end_char_literal:
+        mov ecx, eax
+        cmp esi, .end_addr
+        jae .char_literal_not_closed
+        xor eax, eax
+        lodsb
+        cmp eax, "'"
+        jnz .char_literal_not_closed
+        push ecx
+        call lexeme_char_literal
+        add esp, 4
+        jmp .next
+    .expected_char_literal:
+        push expected_char_literal_len
+        push expected_char_literal_str
+        call print
+        add esp, 8
+        call .print_lexeme
+        call print_quote
+        call newline
+        push dword 1
+        call sys_exit
+    .char_literal_not_closed:
+        push char_literal_close_quote_expected_len
+        push char_literal_close_quote_expected_str
+        call print
+        add esp, 8
+        call .print_lexeme
+        call print_quote
+        call newline
+        push dword 1
+        call sys_exit
+
     .ret:
         call lexeme_end_file
 
@@ -178,24 +248,27 @@ lex:
         ret
 
     .bad_char:
-        mov .char, eax
-
         push bad_char_len
         push bad_char_str
         call print
         add esp, 8
 
-        lea eax, .char
-        push dword 1
-        push eax
-        call print
-        add esp, 8
-
+        call .print_lexeme
         call print_quote
         call newline
 
         push dword 1
         call sys_exit
+
+    .print_lexeme:
+        mov eax, .lexeme_start
+        mov edx, esi
+        sub edx, eax
+        push edx
+        push eax
+        call print
+        add esp, 8
+        ret
 
 ; Checks whether byte is whitespace character
 ; In: AL - input byte
