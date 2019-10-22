@@ -181,21 +181,8 @@ lex:
         cmp esi, .end_addr
         jae .expected_char_literal
         lodsb
-        cmp eax, 't'
-        jnz .char_literal_special1
-        mov eax, 0x09
-        jmp .end_char_literal
-    .char_literal_special1:
-        cmp eax, 'n'
-        jnz .char_literal_special2
-        mov eax, 0x0a
-        jmp .end_char_literal
-    .char_literal_special2:
-        cmp eax, "'"
-        jnz .char_literal_special3
-        mov eax, "'"
-        jmp .end_char_literal
-    .char_literal_special3:
+        call convert_special_char
+        jz .end_char_literal
         inc .lexeme_start
         push unknown_escape_code_len
         push unknown_escape_code_str
@@ -375,4 +362,37 @@ is_operator_char:
 is_single_char:
         movzx edx, byte [is_single_char_table+eax]
         cmp edx, 1
+        ret
+
+; In: EAX - char after '\', 3 high bytes should be zero
+; Out: EAX - special char corresponding to the code
+;      ZF - 1 iff successfully coonverted
+convert_special_char:
+        cmp eax, 't'
+        jnz .char1
+        mov eax, 0x09
+        ret
+    .char1:
+        cmp eax, 'n'
+        jnz .char2
+        mov eax, 0x0a
+        ret
+    .char2:
+        cmp eax, "'"
+        jnz .char3
+        ret
+    .char3:
+        cmp eax, '"'
+        jnz .char4
+        ret
+    .char4:
+        cmp eax, '\'
+        jnz .char5
+        ret
+    .char5:
+        cmp eax, '0'
+        jnz .char6
+        mov eax, 0
+        ret
+    .char6:
         ret
