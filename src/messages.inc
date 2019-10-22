@@ -63,14 +63,29 @@ special_len = $-special_str
 char_token_str db 'Character literal: '''
 char_token_len = $-char_token_str
 
+string_token_str db 'String literal: "'
+string_token_len = $-string_token_str
+
 operator_too_long_str db 'Error: operator should be no longer than 4 character: "'
 operator_too_long_len = $-operator_too_long_str
 
 expected_char_literal_str db 'Error: expected character literal but got: "'
 expected_char_literal_len = $-expected_char_literal_str
 
-char_literal_close_quote_expected_str db 'Error: closing apostrophe expected in char literal: "'
+char_literal_close_quote_expected_str db 'Error: closing apostrophe expected in character literal: "'
 char_literal_close_quote_expected_len = $-char_literal_close_quote_expected_str
 
-unknown_escape_code_str db 'Error: unknown escape code: "'
-unknown_escape_code_len = $-unknown_escape_code_str
+string_literal_close_quote_expected_str db "Error: closing quote expected in string literal: '"
+string_literal_close_quote_expected_len = $-string_literal_close_quote_expected_str
+
+char_unknown_escape_code_str db "Error: unknown escape code: '"
+char_unknown_escape_code_len = $-char_unknown_escape_code_str
+
+char_unknown_escape_code_end_str db "' in character literal", 0x0a
+char_unknown_escape_code_end_len = $-char_unknown_escape_code_end_str
+
+string_unknown_escape_code_str db "Error: unknown escape code: '"
+string_unknown_escape_code_len = $-string_unknown_escape_code_str
+
+string_unknown_escape_code_end_str db "' in string literal", 0x0a
+string_unknown_escape_code_end_len = $-string_unknown_escape_code_end_str

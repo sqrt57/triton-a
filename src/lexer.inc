@@ -41,10 +41,12 @@ lex:
 
         .end_addr equ dword [ebp-4]
         .lexeme_start equ dword [ebp-8]
+        .str_addr equ dword [ebp-12]
+        .str_len equ dword [ebp-16]
 
         push ebp
         mov ebp, esp
-        sub esp, 8
+        sub esp, 16
         push esi
 
         call token_start_file
@@ -69,6 +71,9 @@ lex:
 
         cmp eax, "'"
         jz .read_char_literal
+
+        cmp eax, '"'
+        jz .read_string_literal
 
         call is_single_char
         jz .read_single_char
@@ -184,13 +189,20 @@ lex:
         call convert_special_char
         jz .end_char_literal
         inc .lexeme_start
-        push unknown_escape_code_len
-        push unknown_escape_code_str
+        push char_unknown_escape_code_len
+        push char_unknown_escape_code_str
         call print
         add esp, 8
-        call .print_lexeme
-        call print_quote
-        call newline
+        mov eax, esi
+        sub eax, 2
+        push dword 2
+        push eax
+        call print
+        add esp, 8
+        push char_unknown_escape_code_end_len
+        push char_unknown_escape_code_end_str
+        call print
+        add esp, 8
         push dword 1
         call sys_exit
     .end_char_literal:
@@ -223,6 +235,85 @@ lex:
         call .print_lexeme
         call print_quote
         call newline
+        push dword 1
+        call sys_exit
+
+    .read_string_literal:
+        xor ecx, ecx
+    .string_length:
+        cmp esi, .end_addr
+        jae .string_literal_not_closed
+        lodsb
+        cmp eax, '"'
+        jz .string_copy
+        inc ecx
+        cmp eax, '\'
+        jnz .string_length
+        cmp esi, .end_addr
+        jae .string_literal_not_closed
+        inc esi
+        jmp .string_length
+    .string_copy:
+        mov .str_len, ecx
+        inc ecx
+        push ecx
+        call malloc
+        add esp, 4
+        mov .str_addr, eax
+        push edi
+        mov esi, .lexeme_start
+        inc esi
+        mov edi, eax
+        xor eax, eax
+    .string_copy_load:
+        lodsb
+        cmp eax, '"'
+        jz .string_copy_done
+        cmp eax, '\'
+        jnz .string_copy_store
+        lodsb
+        call convert_special_char
+        jnz .string_escape_code_error
+    .string_copy_store:
+        stosb
+        jmp .string_copy_load
+    .string_copy_done:
+        xor eax, eax
+        stosb
+        pop edi
+        push .str_len
+        push .str_addr
+        call token_string_literal
+        add esp, 8
+        push .str_addr
+        call free
+        add esp, 4
+        jmp .next
+    .string_literal_not_closed:
+        push string_literal_close_quote_expected_len
+        push string_literal_close_quote_expected_str
+        call print
+        add esp, 8
+        call .print_lexeme
+        call print_apostrophe
+        call newline
+        push dword 1
+        call sys_exit
+    .string_escape_code_error:
+        push string_unknown_escape_code_len
+        push string_unknown_escape_code_str
+        call print
+        add esp, 8
+        mov eax, esi
+        sub eax, 2
+        push dword 2
+        push eax
+        call print
+        add esp, 8
+        push string_unknown_escape_code_end_len
+        push string_unknown_escape_code_end_str
+        call print
+        add esp, 8
         push dword 1
         call sys_exit
 

@@ -1,8 +1,6 @@
-'x'
-'\t'
-'\n'
-'\''
-'"'
-'\"'
-'\\'
-'\0'
+"Hello world!"
+"tab: \"\t\""
+"another tab: \"\t\""
+"newline: \'\n\'"
+"backslash: \\"
+""

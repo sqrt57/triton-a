@@ -95,3 +95,30 @@ token_char_literal:
         mov esp, ebp
         pop ebp
         ret
+
+; Processes char literal lexeme
+; In: 1) String literal length
+;     2) String literal address
+token_string_literal:
+        .str equ dword [ebp+8]
+        .str_len equ dword [ebp+12]
+
+        push ebp
+        mov ebp, esp
+
+        push string_token_len
+        push string_token_str
+        call print
+        add esp, 4
+
+        push .str_len
+        push .str
+        call print
+        add esp, 8
+
+        call print_quote
+        call newline
+
+        mov esp, ebp
+        pop ebp
+        ret
