@@ -60,8 +60,8 @@ identifier_len = $-identifier_str
 special_str db 'Special "'
 special_len = $-special_str
 
-char_lexeme_str db 'Character literal: '''
-char_lexeme_len = $-char_lexeme_str
+char_token_str db 'Character literal: '''
+char_token_len = $-char_token_str
 
 operator_too_long_str db 'Error: operator should be no longer than 4 character: "'
 operator_too_long_len = $-operator_too_long_str

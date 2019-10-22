@@ -47,7 +47,7 @@ lex:
         sub esp, 8
         push esi
 
-        call lexeme_start_file
+        call token_start_file
 
         mov esi, .source_addr
         mov eax, esi
@@ -94,14 +94,14 @@ lex:
         sub edx, eax
         push edx
         push eax
-        call lexeme_identifier
+        call token_identifier
         add esp, 8
         jmp .next
 
     .read_single_char:
         push 1
         push eax
-        call lexeme_special
+        call token_special
         add esp, 8
         jmp .next
 
@@ -164,7 +164,7 @@ lex:
         dec esi
     .operator_done_eof:
         push ecx
-        call lexeme_special
+        call token_special
         add esp, 8
         jmp .next
 
@@ -215,7 +215,7 @@ lex:
         cmp eax, "'"
         jnz .char_literal_not_closed
         push ecx
-        call lexeme_char_literal
+        call token_char_literal
         add esp, 4
         jmp .next
     .expected_char_literal:
@@ -240,7 +240,7 @@ lex:
         call sys_exit
 
     .ret:
-        call lexeme_end_file
+        call token_end_file
 
         pop esi
         mov esp, ebp
