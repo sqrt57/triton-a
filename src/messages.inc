@@ -89,3 +89,6 @@ string_unknown_escape_code_len = $-string_unknown_escape_code_str
 
 string_unknown_escape_code_end_str db "' in string literal", 0x0a
 string_unknown_escape_code_end_len = $-string_unknown_escape_code_end_str
+
+comment_not_closed_str db 'Comment should be closed before end of file', 0x0a
+comment_not_closed_len = $-comment_not_closed_str

@@ -66,8 +66,8 @@ lex:
         call is_whitespace
         jz .skip_whitespace
 
-        call is_identifier_start
-        jz .read_identifier
+        cmp eax, "/"
+        jz .dispatch_slash
 
         cmp eax, "'"
         jz .read_char_literal
@@ -81,7 +81,22 @@ lex:
         call is_operator_char
         jz .read_operator
 
+        call is_identifier_start
+        jz .read_identifier
+
         jmp .bad_char
+
+    .dispatch_slash:
+        cmp esi, .end_addr
+        jae .read_operator
+        lodsb
+        cmp eax, '/'
+        jz .line_comment
+        cmp eax, '*'
+        jz .comment
+        dec esi
+        mov eax, '/'
+        jmp .read_operator
 
     .read_identifier:
         lea edx, [esi-1]
@@ -312,6 +327,44 @@ lex:
         add esp, 8
         push string_unknown_escape_code_end_len
         push string_unknown_escape_code_end_str
+        call print
+        add esp, 8
+        push dword 1
+        call sys_exit
+
+    .line_comment:
+        cmp esi, .end_addr
+        jae .ret
+        lodsb
+        cmp eax, 0x0a
+        jnz .line_comment
+        jmp .next
+
+    .comment:
+        mov ecx, 1
+        xor eax, eax
+    .comment_next:
+        cmp esi, .end_addr
+        jae .comment_not_closed
+        shl eax, 8
+        lodsb
+        cmp ax, '*/'
+        jz .comment_open
+        cmp ax, '/*' ; */
+        jz .comment_close
+        jmp .comment_next
+    .comment_open:
+        inc ecx
+        xor eax, eax
+        jmp .comment_next
+    .comment_close:
+        dec ecx
+        jz .next
+        xor eax, eax
+        jmp .comment_next
+    .comment_not_closed:
+        push comment_not_closed_len
+        push comment_not_closed_str
         call print
         add esp, 8
         push dword 1
