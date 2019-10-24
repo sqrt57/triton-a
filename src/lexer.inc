@@ -348,10 +348,10 @@ lex:
         jae .comment_not_closed
         shl eax, 8
         lodsb
+        cmp ax, '/*'
+        jz .comment_close
         cmp ax, '*/'
         jz .comment_open
-        cmp ax, '/*' ; */
-        jz .comment_close
         jmp .comment_next
     .comment_open:
         inc ecx
