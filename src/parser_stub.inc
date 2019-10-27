@@ -96,7 +96,7 @@ token_char_literal:
         pop ebp
         ret
 
-; Processes char literal lexeme
+; Processes string literal token
 ; In: 1) String literal length
 ;     2) String literal address
 token_string_literal:
@@ -117,6 +117,47 @@ token_string_literal:
         add esp, 8
 
         call print_quote
+        call newline
+
+        mov esp, ebp
+        pop ebp
+        ret
+
+; Processes number literal token
+; In: 1) Number literal value
+;     2) Sign of number literal:
+;         0: positive
+;         0xffffffff: negative
+; SIGN=0 means that NUMBER contains unsigned 32-bit value
+; SIGN=-1 means that NUMBER contains signed 32-bit value
+token_number_literal:
+        .number equ dword [ebp+8]
+        .sign equ dword [ebp+12]
+
+        push ebp
+        mov ebp, esp
+
+        push number_token_len
+        push number_token_str
+        call print
+        add esp, 8
+
+        cmp .sign, 0
+        jne .signed
+
+        push .number
+        call print_u32
+        add esp, 4
+
+        jmp .done
+
+    .signed:
+        push .number
+        call print_s32
+        add esp, 4
+
+    .done:
+
         call newline
 
         mov esp, ebp

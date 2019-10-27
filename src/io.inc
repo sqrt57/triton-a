@@ -28,30 +28,6 @@ print:
         pop ebp
         ret
 
-; Prints newline to stdandard output
-newline:
-        push dword newline_len
-        push dword newline_str
-        call print
-        add esp, 8
-        ret
-
-; Prints quote to stdandard output
-print_quote:
-        push dword quote_len
-        push dword quote_str
-        call print
-        add esp, 8
-        ret
-
-; Prints quote to stdandard output
-print_apostrophe:
-        push dword apostrophe_len
-        push dword apostrophe_str
-        call print
-        add esp, 8
-        ret
-
 ; Reads a file into memory
 ; In: 1) File path address (null-terminated)
 ;     2) File path length

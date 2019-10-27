@@ -51,6 +51,7 @@ start:
 include 'driver.inc'
 include 'memory.inc'
 include 'io.inc'
+include 'io-front.inc'
 include 'lexer.inc'
 include 'parser_stub.inc'
 

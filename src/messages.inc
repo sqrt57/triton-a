@@ -66,6 +66,9 @@ char_token_len = $-char_token_str
 string_token_str db 'String literal: "'
 string_token_len = $-string_token_str
 
+number_token_str db 'Number token: '
+number_token_len = $-number_token_str
+
 operator_too_long_str db 'Error: operator should be no longer than 4 character: "'
 operator_too_long_len = $-operator_too_long_str
 
@@ -92,3 +95,6 @@ string_unknown_escape_code_end_len = $-string_unknown_escape_code_end_str
 
 comment_not_closed_str db 'Comment should be closed before end of file', 0x0a
 comment_not_closed_len = $-comment_not_closed_str
+
+number_too_big_str db 'Number literal does not fit into 32 bits: '
+number_too_big_len = $-number_too_big_str

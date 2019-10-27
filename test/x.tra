@@ -1,16 +1,5 @@
-begin
-// Line comment
-command1
-/* Comment */
-command2
-/** Comment ***/
-command3
-/*** Comment **/
-command4
-/*
-  Multi-line comment
-*/
-command5
-/* Nested comment /* Level 2 */ Level 1 */
-command6
-/* Should complain about non-closed comment
+0 00 1 01 2 3 -0 -1 -2 -3 1234567890 -1234567890
+4294967295
+-2147483648
+- --
+-

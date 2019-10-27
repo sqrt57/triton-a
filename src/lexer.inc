@@ -41,8 +41,13 @@ lex:
 
         .end_addr equ dword [ebp-4]
         .lexeme_start equ dword [ebp-8]
+        ; The following literal variants are exclusive so they share storage
+        ; Used for storing string literal
         .str_addr equ dword [ebp-12]
         .str_len equ dword [ebp-16]
+        ; Used for storing number literal
+        .number equ dword [ebp-12]
+        .sign equ dword [ebp-16]
 
         push ebp
         mov ebp, esp
@@ -75,6 +80,12 @@ lex:
         cmp eax, '"'
         jz .read_string_literal
 
+        cmp eax, '-'
+        jz .dispatch_minus
+
+        cmp eax, '0'
+        jz .read_number
+
         call is_single_char
         jz .read_single_char
 
@@ -83,6 +94,9 @@ lex:
 
         call is_identifier_start
         jz .read_identifier
+
+        call is_digit
+        jz .read_number
 
         jmp .bad_char
 
@@ -97,6 +111,20 @@ lex:
         dec esi
         mov eax, '/'
         jmp .read_operator
+
+    .dispatch_minus:
+        cmp esi, .end_addr
+        jae .read_operator
+        lodsb
+        call is_digit
+        jz .dispatch_minus_number
+        dec esi
+        mov eax, '-'
+        jmp .read_operator
+    .dispatch_minus_number:
+        dec esi
+        mov eax, '-'
+        jmp .read_number
 
     .read_identifier:
         lea edx, [esi-1]
@@ -187,6 +215,70 @@ lex:
         call token_special
         add esp, 8
         jmp .next
+
+    .negative:
+        dec .sign
+        lodsb
+        jmp .read_number_digit
+
+    .read_number:
+        xor edx, edx
+        mov .number, edx
+        mov .sign, edx
+        cmp eax, '-'
+        je .negative
+    .read_number_digit:
+        call digit_to_int
+        jnz .number_done
+
+        mov ecx, eax
+        mov eax, 10
+        mul .number
+        jc .number_too_big
+        add eax, ecx
+        jc .number_too_big
+        mov .number, eax
+
+        cmp esi, .end_addr
+        jae .number_done_eof
+        xor eax, eax
+        lodsb
+        jmp .read_number_digit
+
+    .number_done:
+        dec esi
+    .number_done_eof:
+        cmp .sign, 0
+        jz .number_sign_done
+        cmp .number, 0
+        jz .number_done_zero
+        neg .number
+        jns .number_too_big
+    .number_sign_done:
+        push .sign
+        push .number
+        call token_number_literal
+        add esp, 8
+        jmp .next
+
+    .number_done_zero:
+        xor eax, eax
+        push eax
+        push eax
+        call token_number_literal
+        add esp, 8
+        jmp .next
+
+    .number_too_big:
+        push number_too_big_len
+        push number_too_big_str
+        call print
+        add esp, 8
+        call .print_lexeme
+        call newline
+
+        push dword 1
+        call sys_exit
 
     .read_char_literal:
         cmp esi, .end_addr
@@ -485,6 +577,39 @@ is_identifier_char:
         jbe .return_true
         ret
     .return_true:
+        cmp eax, eax
+        ret
+
+; Checks whether char is decimal digit
+; In: EAX - input byte, 3 high bytes should be zero
+; Out: ZF=1 iff input is decimal digit
+;      EAX - preserves input
+is_digit:
+        cmp eax, '0'
+        jae .range_high
+        ret
+    .range_high:
+        cmp eax, '9'
+        jbe .return_true
+        ret
+    .return_true:
+        cmp eax, eax
+        ret
+
+; Converts decimal digit from char to numeric value
+; In: EAX - input byte, 3 high bytes should be zero
+; Out: ZF=1 iff input is decimal digit
+;      EAX - numeric value
+digit_to_int:
+        cmp eax, '0'
+        jae .range_high
+        ret
+    .range_high:
+        cmp eax, '9'
+        jbe .return_true
+        ret
+    .return_true:
+        sub eax, '0'
         cmp eax, eax
         ret
 
