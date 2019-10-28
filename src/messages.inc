@@ -98,3 +98,6 @@ comment_not_closed_len = $-comment_not_closed_str
 
 number_too_big_str db 'Number literal does not fit into 32 bits: '
 number_too_big_len = $-number_too_big_str
+
+number_literal_bad_char_str db 'Illegal character in number literal: '
+number_literal_bad_char_len = $-number_literal_bad_char_str

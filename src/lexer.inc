@@ -229,7 +229,7 @@ lex:
         je .negative
     .read_number_digit:
         call digit_to_int
-        jnz .number_done
+        jnz .number_check_next_char
 
         mov ecx, eax
         mov eax, 10
@@ -245,7 +245,15 @@ lex:
         lodsb
         jmp .read_number_digit
 
-    .number_done:
+    .number_check_next_char:
+        call is_whitespace
+        jz .number_next_char_ok
+        call is_single_char
+        jz .number_next_char_ok
+        call is_operator_char
+        jz .number_next_char_ok
+        jmp .number_literal_bad_char
+    .number_next_char_ok:
         dec esi
     .number_done_eof:
         cmp .sign, 0
@@ -272,6 +280,17 @@ lex:
     .number_too_big:
         push number_too_big_len
         push number_too_big_str
+        call print
+        add esp, 8
+        call .print_lexeme
+        call newline
+
+        push dword 1
+        call sys_exit
+
+    .number_literal_bad_char:
+        push number_literal_bad_char_len
+        push number_literal_bad_char_str
         call print
         add esp, 8
         call .print_lexeme
