@@ -101,3 +101,6 @@ number_too_big_len = $-number_too_big_str
 
 number_literal_bad_char_str db 'Illegal character in number literal: '
 number_literal_bad_char_len = $-number_literal_bad_char_str
+
+hex_number_literal_digits_expected_str db 'Digits expected in hexadecimal number literal: '
+hex_number_literal_digits_expected_len = $-hex_number_literal_digits_expected_str

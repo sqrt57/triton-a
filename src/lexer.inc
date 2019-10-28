@@ -219,7 +219,7 @@ lex:
     .negative:
         dec .sign
         lodsb
-        jmp .read_number_digit
+        jmp .read_decimal
 
     .read_number:
         xor edx, edx
@@ -227,6 +227,16 @@ lex:
         mov .sign, edx
         cmp eax, '-'
         je .negative
+    .read_decimal:
+        cmp eax, '0'
+        jne .read_number_digit
+        cmp esi, .end_addr
+        jae .number_done_zero
+        lodsb
+        cmp eax, 'x'
+        je .number_hex
+        cmp eax, 'X'
+        je .number_hex
     .read_number_digit:
         call digit_to_int
         jnz .number_check_next_char
@@ -244,6 +254,30 @@ lex:
         xor eax, eax
         lodsb
         jmp .read_number_digit
+
+    .number_hex:
+        cmp esi, .end_addr
+        jae .hex_number_literal_digits_expected
+        lodsb
+        call is_hex_digit
+        jnz .hex_number_literal_digits_expected
+    .read_hex_number_digit:
+        call hex_digit_to_int
+        jnz .number_check_next_char
+
+        mov ecx, eax
+        mov eax, 16
+        mul .number
+        jc .number_too_big
+        add eax, ecx
+        jc .number_too_big
+        mov .number, eax
+
+        cmp esi, .end_addr
+        jae .number_done_eof
+        xor eax, eax
+        lodsb
+        jmp .read_hex_number_digit
 
     .number_check_next_char:
         call is_whitespace
@@ -291,6 +325,17 @@ lex:
     .number_literal_bad_char:
         push number_literal_bad_char_len
         push number_literal_bad_char_str
+        call print
+        add esp, 8
+        call .print_lexeme
+        call newline
+
+        push dword 1
+        call sys_exit
+
+    .hex_number_literal_digits_expected:
+        push hex_number_literal_digits_expected_len
+        push hex_number_literal_digits_expected_str
         call print
         add esp, 8
         call .print_lexeme
@@ -630,6 +675,65 @@ digit_to_int:
     .return_true:
         sub eax, '0'
         cmp eax, eax
+        ret
+
+; Checks whether char is hexadecimal digit
+; In: EAX - input byte, 3 high bytes should be zero
+; Out: ZF=1 iff input is hexadecimal digit
+;      EAX - preserves input
+is_hex_digit:
+        cmp eax, '0'
+        jb .alpha_lower
+        cmp eax, '9'
+        ja .alpha_lower
+        cmp eax, eax
+        ret
+    .alpha_lower:
+        cmp eax, 'a'
+        jb .alpha_upper
+        cmp eax, 'f'
+        ja .alpha_upper
+        cmp eax, eax
+        ret
+    .alpha_upper:
+        cmp eax, 'A'
+        jb .false
+        cmp eax, 'F'
+        ja .false
+        cmp eax, eax
+        ret
+    .false:
+        ret
+
+; Converts hexadecimal digit from char to numeric value
+; In: EAX - input byte, 3 high bytes should be zero
+; Out: ZF=1 iff input is hexadecimal digit
+;      EAX - numeric value
+hex_digit_to_int:
+        cmp eax, '0'
+        jb .alpha_lower
+        cmp eax, '9'
+        ja .alpha_lower
+        sub eax, '0'
+        cmp eax, eax
+        ret
+    .alpha_lower:
+        cmp eax, 'a'
+        jb .alpha_upper
+        cmp eax, 'f'
+        ja .alpha_upper
+        sub eax, 'a'-10
+        cmp eax, eax
+        ret
+    .alpha_upper:
+        cmp eax, 'A'
+        jb .false
+        cmp eax, 'F'
+        ja .false
+        sub eax, 'A'-10
+        cmp eax, eax
+        ret
+    .false:
         ret
 
 ; Checks whether char is part of operator
