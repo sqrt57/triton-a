@@ -39,6 +39,51 @@ mem_copy:
         pop esi
         ret
 
+; Compares two byte strings for equality
+; In: 1) Address of string 1
+;     2) Length of string 1
+;     3) Address of string 2
+;     4) Length of string 2
+; Out: EAX=-1 if strings are equal, 0 otherwise
+mem_eq:
+        .str1 equ dword [ebp+8]
+        .str1_len equ dword [ebp+12]
+        .str2 equ dword [ebp+16]
+        .str2_len equ dword [ebp+20]
+
+        push ebp
+        mov ebp, esp
+        push esi
+        push edi
+
+        mov ecx, .str1_len
+        mov edx, .str2_len
+        cmp ecx, edx
+        jne .noteq
+
+        mov esi, .str1
+        mov edi, .str2
+    .next:
+        jcxz .eq
+        lodsb
+        cmp al, byte [edi]
+        jne .noteq
+        inc edi
+        dec ecx
+        jmp .next
+    .eq:
+        xor eax, eax
+        dec eax
+        jmp .ret
+    .noteq:
+        xor eax, eax
+    .ret:
+        pop edi
+        pop esi
+        mov esp, ebp
+        pop ebp
+        ret
+
 ; Allocate memory
 ; In: 1) Required amount of memory
 ; Out: EAX - Address of allocate memory block or NULL on error

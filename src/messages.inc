@@ -45,62 +45,59 @@ error_writing_file_len = $-error_writing_file_str
 dummy_file_str db 'Dummy output file'
 dummy_file_len = $-dummy_file_str
 
-bad_char_str db 'Error: unexpected char in input: "'
+bad_char_str db 'Lexer error: unexpected char in input: "'
 bad_char_len = $-bad_char_str
 
-lexer_starting_str db 'Lexer starting', 0x0a
-lexer_starting_len = $-lexer_starting_str
-
-lexer_done_str db 'Lexer done', 0x0a
-lexer_done_len = $-lexer_done_str
-
-identifier_str db 'Identifier "'
-identifier_len = $-identifier_str
-
-special_str db 'Special "'
-special_len = $-special_str
-
-char_token_str db 'Character literal: '''
-char_token_len = $-char_token_str
-
-string_token_str db 'String literal: "'
-string_token_len = $-string_token_str
-
-number_token_str db 'Number token: '
-number_token_len = $-number_token_str
-
-operator_too_long_str db 'Error: operator should be no longer than 4 character: "'
+operator_too_long_str db 'Lexer error: operator should be no longer than 4 character: "'
 operator_too_long_len = $-operator_too_long_str
 
-expected_char_literal_str db 'Error: expected character literal but got: "'
+expected_char_literal_str db 'Lexer error: expected character literal but got: "'
 expected_char_literal_len = $-expected_char_literal_str
 
-char_literal_close_quote_expected_str db 'Error: closing apostrophe expected in character literal: "'
+char_literal_close_quote_expected_str db 'Lexer error: closing apostrophe expected in character literal: "'
 char_literal_close_quote_expected_len = $-char_literal_close_quote_expected_str
 
-string_literal_close_quote_expected_str db "Error: closing quote expected in string literal: '"
+string_literal_close_quote_expected_str db "Lexer error: closing quote expected in string literal: '"
 string_literal_close_quote_expected_len = $-string_literal_close_quote_expected_str
 
-char_unknown_escape_code_str db "Error: unknown escape code: '"
+char_unknown_escape_code_str db "Lexer error: unknown escape code: '"
 char_unknown_escape_code_len = $-char_unknown_escape_code_str
 
 char_unknown_escape_code_end_str db "' in character literal", 0x0a
 char_unknown_escape_code_end_len = $-char_unknown_escape_code_end_str
 
-string_unknown_escape_code_str db "Error: unknown escape code: '"
+string_unknown_escape_code_str db "Lexer error: unknown escape code: '"
 string_unknown_escape_code_len = $-string_unknown_escape_code_str
 
 string_unknown_escape_code_end_str db "' in string literal", 0x0a
 string_unknown_escape_code_end_len = $-string_unknown_escape_code_end_str
 
-comment_not_closed_str db 'Comment should be closed before end of file', 0x0a
+comment_not_closed_str db 'Lexer error: comment should be closed before end of file', 0x0a
 comment_not_closed_len = $-comment_not_closed_str
 
-number_too_big_str db 'Number literal does not fit into 32 bits: '
+number_too_big_str db 'Lexer error: number literal does not fit into 32 bits: '
 number_too_big_len = $-number_too_big_str
 
-number_literal_bad_char_str db 'Illegal character in number literal: '
+number_literal_bad_char_str db 'Lexer error: illegal character in number literal: '
 number_literal_bad_char_len = $-number_literal_bad_char_str
 
-hex_number_literal_digits_expected_str db 'Digits expected in hexadecimal number literal: '
+hex_number_literal_digits_expected_str db 'Lexer error: digits expected in hexadecimal number literal: '
 hex_number_literal_digits_expected_len = $-hex_number_literal_digits_expected_str
+
+lexeme_special_unknown_str db 'Lexer error: unknown special: '
+lexeme_special_unknown_len = $-lexeme_special_unknown_str
+
+parser_unexpected_eof_str db 'Parser error: unexpected EOF', 0x0a
+parser_unexpected_eof_len = $-parser_unexpected_eof_str
+
+parser_unexpected_identifier_str db 'Parser error: unexpected identifier: '
+parser_unexpected_identifier_len = $-parser_unexpected_identifier_str
+
+parser_unexpected_keyword_str db 'Parser error: unexpected keyword: '
+parser_unexpected_keyword_len = $-parser_unexpected_keyword_str
+
+parser_unexpected_special_str db 'Parser error: unexpected '
+parser_unexpected_special_len = $-parser_unexpected_special_str
+
+module_name_str db 'Module name: '
+module_name_len = $-module_name_str

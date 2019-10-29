@@ -142,14 +142,14 @@ lex:
         sub edx, eax
         push edx
         push eax
-        call token_identifier
+        call lexeme_identifier
         add esp, 8
         jmp .next
 
     .read_single_char:
         push 1
         push eax
-        call token_special
+        call lexeme_special
         add esp, 8
         jmp .next
 
@@ -212,7 +212,7 @@ lex:
         dec esi
     .operator_done_eof:
         push ecx
-        call token_special
+        call lexeme_special
         add esp, 8
         jmp .next
 
@@ -787,4 +787,86 @@ convert_special_char:
         mov eax, 0
         ret
     .char6:
+        ret
+
+; Dispatches special lexeme
+; In: 1) Special name length, maximum 4
+;     2) Special name value on stack, maximum 4 bytes
+lexeme_special:
+        .name_val equ dword [ebp+8]
+        .name_len equ dword [ebp+12]
+
+        push ebp
+        mov ebp, esp
+
+        push .name_len
+        push .name_val
+        mov eax, .name_val
+        cmp eax, '{'
+        je .left_curly
+        cmp eax, '}'
+        je .right_curly
+
+        push lexeme_special_unknown_len
+        push lexeme_special_unknown_str
+        call print
+        add esp, 8
+        lea edx, .name_val
+        push .name_len
+        push edx
+        call print
+        add esp, 8
+        call newline
+
+        push dword 1
+        call sys_exit
+
+    .left_curly:
+        call token_left_curly
+        jmp .ret
+
+    .right_curly:
+        call token_right_curly
+        jmp .ret
+
+    .ret:
+        ; add esp, 8
+        mov esp, ebp
+        pop ebp
+        ret
+
+; Dispatches identifier lexeme
+; In: 1) Identifier name address
+;     2) Identifier name length
+lexeme_identifier:
+        .ident_str equ dword [ebp+8]
+        .ident_len equ dword [ebp+12]
+
+        push ebp
+        mov ebp, esp
+
+        push .ident_len
+        push .ident_str
+        push module_len
+        push module_str
+        call mem_eq
+        add esp, 16
+        test eax, eax
+        jnz .module
+
+        push .ident_len
+        push .ident_str
+        call token_identifier
+        jmp .ret
+
+    .module:
+        push .ident_len
+        push .ident_str
+        call token_keyword_module
+        add esp, 8
+        jmp .ret
+
+    .ret:
+        mov esp, ebp
+        pop ebp
         ret

@@ -8,6 +8,7 @@ entry start
 
 section '.rdata' data readable
 include 'messages.inc'
+include 'keywords.inc'
 
 section '.data' data readable writable
 include 'variables.inc'
@@ -53,7 +54,7 @@ include 'memory.inc'
 include 'io.inc'
 include 'io-front.inc'
 include 'lexer.inc'
-include 'parser_stub.inc'
+include 'parser.inc'
 
 section '.idata' import data readable writable
 
