@@ -847,6 +847,15 @@ lexeme_identifier:
 
         push .ident_len
         push .ident_str
+        call hash
+        add esp, 8
+        push eax
+        call print_u32_hex
+        add esp, 4
+        call newline
+
+        push .ident_len
+        push .ident_str
         push module_len
         push module_str
         call mem_eq

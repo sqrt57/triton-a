@@ -55,6 +55,7 @@ include 'io.inc'
 include 'io-front.inc'
 include 'lexer.inc'
 include 'parser.inc'
+include 'dict.inc'
 
 section '.idata' import data readable writable
 

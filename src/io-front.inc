@@ -113,3 +113,49 @@ print_s32:
         mov esp, ebp
         pop ebp
         ret
+
+; Prints unsigned number to standard output in hexadecimal format
+; In: 1) Unsigned integer value
+print_u32_hex:
+        .number equ dword [ebp+8]
+        .buffer_end equ dword [ebp]
+        .buffer_last_byte equ dword [ebp-1]
+        .buffer equ dword [ebp-12]
+
+        push ebp
+        mov ebp, esp
+        sub esp, 12
+        push edi
+        mov eax, .number
+        lea edi, .buffer_last_byte
+    .digit:
+        mov edx, eax
+        and edx, 0xf
+        shr eax, 4
+        call .digit_to_char
+        mov [edi], dl
+        dec edi
+        test eax, eax
+        jnz .digit
+
+        lea eax, .buffer_end
+        sub eax, edi
+        inc edi
+        push eax
+        push edi
+        call print
+        add esp, 8
+
+        pop edi
+        mov esp, ebp
+        pop ebp
+        ret
+
+    .digit_to_char:
+        cmp edx, 9
+        ja .hex
+        add edx, '0'
+        ret
+    .hex:
+        add edx, 'a'-10
+        ret
